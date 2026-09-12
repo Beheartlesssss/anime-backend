@@ -1,32 +1,34 @@
 import os
 import requests
-from flask import Flask, redirect
+from flask import Flask
 
 app = Flask(__name__)
 
 BOT_TOKEN = "8786442663:AAFEDXAAEyy06AcnNeIE9bWeWm8JdrKPC08"
 
 
-@app.route("/stream/<path:identifier>")
-def stream_video(identifier):
+@app.route("/")
+def get_file_id():
+  # Yeh link kholte hi bot par aakhri aayi video ka file_id seedha screen par dikha dega!
+  url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
+  res = requests.get(url).json()
   try:
-    # Agar lamba URL ya path hai toh seedha Telegram web stream par redirect kar do
-    if "dcld" in identifier or "http" in identifier or "/" in identifier:
-      video_url = f"https://web.telegram.org/k/stream/{identifier}"
-      return redirect(video_url)
-
-    # Agar chota file_id hai toh Bot API se live link nikal lo
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={identifier}"
-    response = requests.get(url).json()
-
-    if "result" in response and "file_path" in response["result"]:
-      file_path = response["result"]["file_path"]
-      video_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
-      return redirect(video_url)
-    else:
-      return f"Telegram Error: {response}", 400
+    # Aakhri message se file_id nikalna
+    for result in reversed(res.get("result", [])):
+      message = result.get("message", {})
+      if "video" in message:
+        return f"MIL GAYA FILE ID: <br><br><b>{message['video']['file_id']}</b>"
+      elif "document" in message:
+        return (
+            "MIL GAYA FILE ID:"
+            f" <br><br><b>{message['document']['file_id']}</b>"
+        )
+    return (
+        "Bot par koi video nahi mili! Pehle apne bot ko video bhejo phir yeh link"
+        " refresh karo."
+    )
   except Exception as e:
-    return str(e), 500
+    return str(e)
 
 
 if __name__ == "__main__":
