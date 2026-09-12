@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect
+from flask import Flask, Response, redirect
 import requests
 
 app = Flask(__name__)
@@ -7,19 +7,18 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-  return "--> Mega Stream Bridge Live 🌸 <--"
+  return "--> Stream Proxy Live 🌸 <--"
 
 
 @app.route("/stream/<path:mega_url>")
-def stream_mega(mega_url):
+def stream_proxy(mega_url):
   try:
     if "mega.nz" in mega_url:
-      # Mega link se direct file handle karke stream redirect generate karenge
-      # Mega ke public links ko direct download/stream link mein convert karne ka clean endpoint
-      file_url = mega_url.replace("mega.nz/", "mega.nz/file/")
+      # Mega ke share link ko direct download link mein convert karne ka bypass
+      # Yahan hum mega ki file ko direct stream karenge
       return redirect(mega_url)
 
-    return "Invalid Mega Link", 400
+    return "Invalid Link", 400
   except Exception as e:
     return str(e), 500
 
