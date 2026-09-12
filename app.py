@@ -1,34 +1,30 @@
 import os
 import requests
-from flask import Flask
+from flask import Flask, redirect
 
 app = Flask(__name__)
 
-BOT_TOKEN = "8786442663:AAFEDXAAEyy06AcnNeIE9bWeWm8JdrKPC08"
-
 
 @app.route("/")
-def get_file_id():
-  # Yeh link kholte hi bot par aakhri aayi video ka file_id seedha screen par dikha dega!
-  url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
-  res = requests.get(url).json()
+def home():
+  return "--> Your service is live 🌸 <--"
+
+
+@app.route("/stream/<path:identifier>")
+def stream_video(identifier):
   try:
-    # Aakhri message se file_id nikalna
-    for result in reversed(res.get("result", [])):
-      message = result.get("message", {})
-      if "video" in message:
-        return f"MIL GAYA FILE ID: <br><br><b>{message['video']['file_id']}</b>"
-      elif "document" in message:
-        return (
-            "MIL GAYA FILE ID:"
-            f" <br><br><b>{message['document']['file_id']}</b>"
-        )
-    return (
-        "Bot par koi video nahi mili! Pehle apne bot ko video bhejo phir yeh link"
-        " refresh karo."
-    )
+    # Agar Telegram post link hai toh use seedha redirect kar do
+    if "t.me" in identifier:
+      return redirect(identifier)
+
+    # Agar lamba Telegram web stream URL hai
+    if "dcld" in identifier or "http" in identifier or "/" in identifier:
+      video_url = f"https://web.telegram.org/k/stream/{identifier}"
+      return redirect(video_url)
+
+    return "Invalid Link", 400
   except Exception as e:
-    return str(e)
+    return str(e), 500
 
 
 if __name__ == "__main__":
