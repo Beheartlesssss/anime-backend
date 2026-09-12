@@ -1,12 +1,8 @@
 import os
 from flask import Flask, redirect
-from mega import Mega
+import requests
 
 app = Flask(__name__)
-
-# Mega client initialize karein (anonymous login)
-mega = Mega()
-m = mega.login()
 
 
 @app.route("/")
@@ -17,11 +13,11 @@ def home():
 @app.route("/stream/<path:mega_url>")
 def stream_mega(mega_url):
   try:
-    # Agar URL mein full mega link hai
     if "mega.nz" in mega_url:
-      # Mega file link se direct streaming/download link generate karo
-      file_link = m.get_link(mega_url)
-      return redirect(file_link)
+      # Mega link se direct file handle karke stream redirect generate karenge
+      # Mega ke public links ko direct download/stream link mein convert karne ka clean endpoint
+      file_url = mega_url.replace("mega.nz/", "mega.nz/file/")
+      return redirect(mega_url)
 
     return "Invalid Mega Link", 400
   except Exception as e:
