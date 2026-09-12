@@ -4,15 +4,19 @@ from flask import Flask, redirect
 
 app = Flask(__name__)
 
-# Tumhara Naya Bot Token set hai
 BOT_TOKEN = "8829850155:AAE0dr-iHWK9mWrG2dZ3DB51yOzigMkeInY"
 
 
-@app.route("/stream/<path:file_id>")
-def stream_video(file_id):
+@app.route("/stream/<path:identifier>")
+def stream_video(identifier):
   try:
-    # Telegram API se file ka live path nikalna
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={file_id}"
+    # Agar lamba URL ya path hai toh seedha Telegram web stream par redirect kar do
+    if "dcld" in identifier or "http" in identifier or "/" in identifier:
+      video_url = f"https://web.telegram.org/k/stream/{identifier}"
+      return redirect(video_url)
+
+    # Agar chota file_id hai toh Bot API se live link nikal lo
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={identifier}"
     response = requests.get(url).json()
 
     if "result" in response and "file_path" in response["result"]:
