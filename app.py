@@ -4,7 +4,7 @@ from flask import Flask, redirect
 
 app = Flask(__name__)
 
-BOT_TOKEN = "8829850155:AAE0dr-iHWK9mWrG2dZ3DB51yOzigMkeInY"
+BOT_TOKEN = "8786442663:AAFEDXAAEyy06AcnNeIE9bWeWm8JdrKPC08"
 
 
 @app.route("/stream/<path:identifier>")
