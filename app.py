@@ -4,8 +4,8 @@ from flask import Flask, redirect
 
 app = Flask(__name__)
 
-# Tumhara Bot Token
-BOT_TOKEN = "7573887034:AAHLbY9p3S...bhi_jo_tumhara_token_hai..."
+# Tumhara Naya Bot Token set hai
+BOT_TOKEN = "8829850155:AAE0dr-iHWK9mWrG2dZ3DB51yOzigMkeInY"
 
 
 @app.route("/stream/<path:file_id>")
