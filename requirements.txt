@@ -1,4 +1,3 @@
 Flask
 requests
-pyrogram
-tgcrypto
+mega.py
