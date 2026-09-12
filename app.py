@@ -1,60 +1,54 @@
 import os
-import re
-import requests
-from flask import Flask, Response, redirect
+from flask import Flask, redirect
+from pyrogram import Client
 
 app = Flask(__name__)
+
+# Render Environment variables se API details lenge
+API_ID = int(os.environ.get("API_ID", 0))
+API_HASH = os.environ.get("API_HASH", "")
+SESSION_STRING = os.environ.get("SESSION_STRING", "")
+
+# Pyrogram Client initialize karein
+client = Client(
+    "anime_session",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    session_string=SESSION_STRING,
+    in_memory=True,
+)
 
 
 @app.route("/")
 def home():
-  return "--> Your service is live 🌸 <--"
+  return "--> Telegram Stream Bridge Live 🌸 <--"
 
 
 @app.route("/stream/<path:identifier>")
 def stream_video(identifier):
   try:
-    # Agar RubyVidHub link hai toh seedha redirect karo
+    # Agar RubyVidHub ya koi aur link hai toh seedha redirect karo
     if "rubyvidhub.com" in identifier:
       return redirect(identifier)
 
-    # Agar Telegram post link hai
+    # Agar Telegram link hai ( jaise https://t.me/dekho_anime_here/2 )
     if "t.me" in identifier:
-      # Telegram web page se HTML fetch karo
-      headers = {
-          "User-Agent": (
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,"
-              " like Gecko) Chrome/120.0.0.0 Safari/537.36"
-          )
-      }
-      resp = requests.get(identifier, headers=headers)
+      parts = identifier.split("t.me/")[-1].split("/")
+      channel = parts[0]
+      msg_id = int(parts[1])
 
-      if resp.status_code == 200:
-        # HTML ke andar se direct video file (.mp4) ka link dhoondo
-        match = re.search(r'property="og:video"\s+content="([^"]+)"', resp.text)
-        if not match:
-          match = re.search(
-              r'src="([^"]+\.mp4(?:\?[^"]*)?)"', resp.text, re.IGNORECASE
-          )
+      if not client.is_connected:
+        client.start()
 
-        if match:
-          video_url = match.group(1)
-          # Agar relative link hai toh domain jod do
-          if video_url.startswith("/"):
-            video_url = "https://t.me" + video_url
-          return redirect(video_url)
+      # Telegram channel se message fetch karo
+      msg = client.get_messages(channel, msg_id)
+      if msg and (msg.video or msg.document):
+        media = msg.video or msg.document
+        # Telegram CDN ka direct fast stream link generate karo
+        file_url = client.get_file_link(media.file_id)
+        return redirect(file_url)
 
-        # Agar direct og:video nahi mila, toh t.me embed/og meta check karo
-        match_alt = re.search(
-            r'<meta property="og:video:secure_url" content="([^"]+)"', resp.text
-        )
-        if match_alt:
-          return redirect(match_alt.group(1))
-
-      # Fallback: Agar kuch extract na ho paaye toh seedha page par bhej do
-      return redirect(identifier)
-
-    return "Invalid Link", 400
+    return "Media not found", 404
   except Exception as e:
     return str(e), 500
 
